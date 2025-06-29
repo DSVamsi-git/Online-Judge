@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from 'react-router-dom';
 import axios from "axios";
 
-const SERVER_URI = import.meta.env.VITE_SERVER_URI
+const SERVER_URI = import.meta.env.VITE_SERVER_URI;
+const COMPILER_URI = import.meta.env.VITE_COMPILER_URI;
 
 export default function ProblemPage(){ 
     const [isLoading,setIsLoading] = useState(true);
@@ -10,20 +11,23 @@ export default function ProblemPage(){
     const [problem,setProblem] = useState(null);    
     const [errorMessage,setErrorMessage] = useState("");
     const { id } = useParams();     
-    const [code, setCode] = useState('');           
-    const [testcase, setTestcase] = useState(''); 
+    const [code, setCode] = useState(localStorage.getItem(`${id}:code`)||'');           
+    const [testcase, setTestcase] = useState(localStorage.getItem(`${id}:testcase`)||''); 
+    const [runMessage,setRunMessage]=useState(null);
     function handleRun(){
-        axios.post(`${SERVER_URI}/problems/${id}`,{
+        setRunMessage(null);
+        axios.post(`${COMPILER_URI}/problems/${id}/run`,{
                 "code":code,
-                "tescase":testcase
+                "testcase":testcase
             },
             {
             headers:{
-                "Authorization":localStorage.getItem("token")
+                "Authorization":`bearer ${localStorage.getItem("token")}`
             },
 
         }
-        )
+        ).then(function(response){setRunMessage(response.data);console.log(response.data.message)})
+         .catch((err)=>{console.log(err.message);})
     }    
         function handleSubmit(){
     }                                          
@@ -35,7 +39,7 @@ export default function ProblemPage(){
             }
         }).then(function (response){setProblem(response.data); setIsLoading(false); setIsSuccessful(true);})
           .catch(function(err){ setIsLoading(false); setIsSuccessful(false); setErrorMessage(err.message)});
-    })
+    },[id]);
 
     if( isLoading ){ return <div className="text-yellow-600"><h1>Loading</h1></div>;}
     if( !isSuccessful ){ return <div className="text-yellow-600"><h1>{errorMessage}</h1></div>; }
@@ -61,7 +65,7 @@ export default function ProblemPage(){
                 </div>
                 <textarea
                     value={code}
-                    onChange={(e) => setCode(e.target.value)}
+                    onChange={(e) =>{ setCode(e.target.value); localStorage.setItem(`${id}:code`,e.target.value);}}
                     placeholder="Type your code here..."
                     className="w-full h-150 p-4 text-md bg-gray-800 text-amber-50 border border-gray-300 rounded-lg "
                 />
@@ -69,7 +73,7 @@ export default function ProblemPage(){
             <div className="p-2 flex justify-between">
                 <textarea 
                     value = {testcase}
-                    onChange={(event)=>setTestcase(event.target.value)}
+                    onChange={(event)=>{setTestcase(event.target.value); localStorage.setItem(`${id}:testcase`,e.target.value);}}
                     placeholder=" testcase"
                     className="w-3xl h-50 p-2 text-md bg-gray-800 text-amber-50 border border-gray-300 rounded-lg"
                 />
@@ -78,9 +82,18 @@ export default function ProblemPage(){
                     <button onClick={handleSubmit} className="bg-green-400 mt-4 mb-8 text-2xl text-white w-2xs rounded-xl focus:ring-green-600  focus:ring-2">submit</button>                    
                 </span>
             </div>     
-            <div className="p-2 mt-2 bg-white w-full ">
-                <div className="text-red-600 text-2xl text-left font-semibold">Result:</div>
-            </div>       
+            {runMessage && (
+            <div className="p-2 mt-2 bg-white w-full shadow-black ">
+                <div className="text-red-600 text-2xl text-left font-semibold">Result:
+                <div className={`${(runMessage.status === "Successful" || runMessage.status === "Accepted") ? "text-green-600" : "text-red-600"} text-xl text-left font-semibold`}>
+                {runMessage.status}:
+                </div>
+                </div>
+                <div className="text-md text-shadow-black px-2 py-2 text-left">
+                {runMessage.message}
+                </div>
+            </div>
+            )}
         </div>
         </>
     )}
