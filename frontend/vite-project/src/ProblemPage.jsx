@@ -30,6 +30,18 @@ export default function ProblemPage(){
          .catch((err)=>{console.log(err.message);})
     }    
         function handleSubmit(){
+        setRunMessage(null);
+        axios.post(`${COMPILER_URI}/problems/${id}/submit`,{
+                "code":code
+            },
+            {
+            headers:{
+                "Authorization":`bearer ${localStorage.getItem("token")}`
+            },
+
+        }
+        ).then(function(response){setRunMessage(response.data);console.log(response.data.message)})
+         .catch((err)=>{console.log(err.message);})
     }                                          
     useEffect(()=>{
         const token = localStorage.getItem("token");
@@ -65,7 +77,7 @@ export default function ProblemPage(){
                 </div>
                 <textarea
                     value={code}
-                    onChange={(e) =>{ setCode(e.target.value); localStorage.setItem(`${id}:code`,e.target.value);}}
+                    onChange={(event) =>{ setCode(event.target.value); localStorage.setItem(`${id}:code`,event.target.value);}}
                     placeholder="Type your code here..."
                     className="w-full h-150 p-4 text-md bg-gray-800 text-amber-50 border border-gray-300 rounded-lg "
                 />
@@ -73,7 +85,7 @@ export default function ProblemPage(){
             <div className="p-2 flex justify-between">
                 <textarea 
                     value = {testcase}
-                    onChange={(event)=>{setTestcase(event.target.value); localStorage.setItem(`${id}:testcase`,e.target.value);}}
+                    onChange={(event)=>{setTestcase(event.target.value); localStorage.setItem(`${id}:testcase`,event.target.value);}}
                     placeholder=" testcase"
                     className="w-3xl h-50 p-2 text-md bg-gray-800 text-amber-50 border border-gray-300 rounded-lg"
                 />
@@ -84,10 +96,11 @@ export default function ProblemPage(){
             </div>     
             {runMessage && (
             <div className="p-2 mt-2 bg-white w-full shadow-black ">
-                <div className="text-red-600 text-2xl text-left font-semibold">Result:
-                <div className={`${(runMessage.status === "Successful" || runMessage.status === "Accepted") ? "text-green-600" : "text-red-600"} text-xl text-left font-semibold`}>
-                {runMessage.status}:
-                </div>
+                <div className="flex items-center gap-2 text-left font-semibold text-xl">
+                <span className="text-red-600 text-2xl">Result:</span>
+                <span className={`${(runMessage.status === "Successful" || runMessage.status === "Accepted") ? "text-green-600" : "text-red-600"} text-2xl`}>
+                    {runMessage.status}
+                </span>
                 </div>
                 <div className="text-md text-shadow-black px-2 py-2 text-left">
                 {runMessage.message}

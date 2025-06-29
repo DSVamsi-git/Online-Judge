@@ -116,6 +116,7 @@ app.post('/problems', verifyToken, verifyAdmin, async (req, res) => {
       ProblemHeading: req.body.ProblemHeading,
       Description: req.body.Description,
       Difficulty: req.body.Difficulty,
+      testcases:req.body.testcases,
       Author: req.user.username // ✅ secure: use from token, not body
     });
 
@@ -134,6 +135,7 @@ app.put('/problems/:id',verifyToken,verifyAdmin, async (req,res)=>{
         'ProblemHeading' : req.body.ProblemHeading,
         'Description' : req.body.Description,
         'Difficulty' : req.body.Difficulty,
+        'testcases' : req.body.testcases,
         'Author' : req.user.username
       };
       const updated = await Problem.findByIdAndUpdate(req.params.id,UpdatedProblem);

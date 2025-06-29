@@ -1,5 +1,16 @@
 const mongoose = require('mongoose');
 
+const TestcaseSchema = new mongoose.Schema({
+  input: {
+    type:String,
+    required: true
+  },
+  expectedOutput: {
+    type:String,
+    required: true
+  }});
+
+
 const problemSchema = new mongoose.Schema({
   ProblemHeading: {
     type: String,
@@ -16,6 +27,7 @@ const problemSchema = new mongoose.Schema({
     required: true,
     enum: ['Easy', 'Medium', 'Hard'],
   },
+  testcases:[TestcaseSchema],
   Author: {
     type: String,
     required: false,

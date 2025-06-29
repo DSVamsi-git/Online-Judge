@@ -4,9 +4,10 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose'); 
 const jwt = require('jsonwebtoken');
-require('dotenv').config({path:"../.env"});
-const Problem = require('../backend/models/Problem'); 
-const User = require('../backend/models/User');
+require('dotenv').config({path:"./.env"});
+const Problem = require('./models/Problem'); 
+const User = require('./models/User');
+const Submission = require('./models/Submission')
 const verifyToken = require('../backend/middlewares/auth');
 const verifyAdmin = require('../backend/middlewares/permission');
 const fs = require('fs');
@@ -14,7 +15,8 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const { exec } = require('child_process');
 const { stdout, stderr } = require('process');
-
+const { promisify } = require('util');
+const execAsync = promisify(exec);
 
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
@@ -85,6 +87,82 @@ app.post("/problems/:id/run", verifyToken, async (req,res)=>{
 
     });
 })
+
+app.post("/problems/:id/submit", verifyToken, async (req, res) => {
+  const { id } = req.params;
+  let problem;
+  try {
+    problem = await Problem.findById(id);
+    if (!problem) return res.status(404).json({ message: "Problem not found" });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error" });
+  }
+
+  const code = req.body.code;
+  const uniqueName = `${uuidv4()}`;
+  const cppfile = path.join("codes", `${uniqueName}.cpp`);
+  const executableFile = path.join("executables", `${uniqueName}.out`);
+  const testcaseFolder = path.join("testcases", uniqueName);
+  fs.mkdirSync(path.dirname(cppfile), { recursive: true });
+  fs.mkdirSync(path.dirname(executableFile), { recursive: true });
+  fs.mkdirSync(testcaseFolder, { recursive: true });
+
+  fs.writeFileSync(cppfile, code);
+
+  const filesToClean = [cppfile, executableFile];
+
+  const compileCommand = `g++ ${cppfile} -o ${executableFile}`;
+  try {
+    await execAsync(compileCommand);
+  } catch (err) {
+    cleanUp();
+    return res.json({
+      status: "Compilation Error",
+      message: err.stderr || err.message
+    });
+  }
+
+  for (let i = 0; i < problem.testcases.length; i++) {
+    const testcase = problem.testcases[i];
+    const testcaseFile = path.join(testcaseFolder, `${i}.in`);
+    fs.writeFileSync(testcaseFile, testcase.input);
+    filesToClean.push(testcaseFile);
+
+    const executeCommand = `${executableFile} < ${testcaseFile}`;
+    try {
+      const { stdout } = await execAsync(executeCommand, { timeout: 3000 });
+      if (stdout.trim() !== testcase.expectedOutput.trim()) {
+        cleanUp();
+        return res.json({
+          status: `Wrong Answer on testcase ${i + 1}`,
+          message: ""
+        });
+      }
+    } catch (err2) {
+      cleanUp();
+      if (err2.killed && err2.signal === 'SIGTERM') {
+        return res.json({ status: "Time Limit Exceeded", message: "" });
+      }
+      return res.json({
+        status: "Run Time Error",
+        message: err2.stderr || err2.message
+      });
+    }
+  }
+
+  cleanUp();
+  return res.json({
+    status: "Accepted",
+    message: ""
+  });
+
+  function cleanUp() {
+    for (const file of filesToClean) {
+      if (fs.existsSync(file)) fs.unlinkSync(file);
+    }
+  }
+});
+
 PORT=7000
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
