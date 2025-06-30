@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams } from 'react-router-dom';
+import { useParams,useNavigate,Link } from 'react-router-dom';
 import axios from "axios";
 import Editor from "@monaco-editor/react";
-import NavBar from './Navbar'
 
 
 const SERVER_URI = import.meta.env.VITE_SERVER_URI;
@@ -17,6 +16,7 @@ export default function ProblemPage() {
     const [code, setCode] = useState(localStorage.getItem(`${id}:code`) || '');
     const [testcase, setTestcase] = useState(localStorage.getItem(`${id}:testcase`) || '');
     const [runMessage, setRunMessage] = useState(null);
+    const navigate = useNavigate();
     function handleRun() {
         setRunMessage(null);
         axios.post(`${COMPILER_URI}/problems/${id}/run`, {
@@ -61,7 +61,22 @@ export default function ProblemPage() {
     if (isSuccessful) {
         return (
             <div className="w-full bg-slate-900">
-                <NavBar />
+            <nav className="flex justify-between items-center bg-slate-900 text-white  py-4 shadow-md rounded-2xl">
+            {/* Left side: Brand */}
+            <div className="flex items-center gap-2 text-2xl font-bold text-blue-400">
+                <span className="text-blue-400">
+                Code<span className="text-gray-400">Case</span>💼
+                </span>
+            </div>
+
+            {/* Right side: Nav links */}
+            <div className="flex gap-6 text-lg">
+                <Link to={`/problems/${id}/submissions`} className="hover:text-blue-400 transition">Submissions</Link>
+                <Link to="/problems" className="hover:text-blue-400 transition">Problems</Link>
+                <Link to="/profile" className="hover:text-blue-400 transition">Profile</Link>
+                <button className="py-1 px-2 bg-amber-400 rounded-lg text-white text-lg hover:text-blue-400 transition" onClick={()=>{localStorage.removeItem("token");navigate('/login')}}>logout</button>
+            </div>
+            </nav>
                 <div className="flex justify-between items-start gap-4 w-full  px-4">
                     <div className=" w-full lg:w-1/2 bg-slate-500 p-4 rounded-2xl h-128 text-white">
                         <div className=" max-w-7xl  mx-auto bg-slate-500 rounded-t-2xl p-2">

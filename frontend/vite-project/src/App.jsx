@@ -6,6 +6,7 @@ import Signup from './Signup';
 import Profile from './Profile';
 import ProblemTable from './ProblemTable';
 import ProblemPage from './ProblemPage';
+import Submissions from './Submissions';
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/problems" element={<ProblemTable />} />
         <Route path="/problems/:id" element={<ProblemPage />} />
+        <Route path="/problems/:id/submissions" element={<Submissions/>}/>
       </Routes>
     </Router>
   );

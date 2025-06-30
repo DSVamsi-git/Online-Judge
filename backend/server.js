@@ -171,9 +171,10 @@ app.get('/problems/:id/submissions',verifyToken,async (req,res)=>{
   try{
     const user = await User.findOne({username:req.user.username});
     const {id} = req.params;
-    const submissions = await Submission.find({user:user._id,problem:id});
+    const submissions = await Submission.find({user:user._id,problem:id}).sort({ createdAt:-1 });
     res.json(submissions);
   } catch(err) {
+    console.log(err.message);
     res.status(500).json(err.message);
   }
 })

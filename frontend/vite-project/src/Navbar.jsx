@@ -15,6 +15,7 @@ export default function NavBar() {
 
       {/* Right side: Nav links */}
       <div className="flex gap-6 text-lg">
+        <Link to={`/problems/${id}/submissions`} className="hover:text-blue-400 transition">Submissions</Link>
         <Link to="/problems" className="hover:text-blue-400 transition">Problems</Link>
         <Link to="/profile" className="hover:text-blue-400 transition">Profile</Link>
         <button className="py-1 px-2 bg-amber-400 rounded-lg text-white text-lg hover:text-blue-400 transition" onClick={()=>{localStorage.removeItem("token");Navigate('/login')}}>logout</button>
