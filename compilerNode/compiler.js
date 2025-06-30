@@ -89,6 +89,13 @@ app.post("/problems/:id/run", verifyToken, async (req,res)=>{
 })
 
 app.post("/problems/:id/submit", verifyToken, async (req, res) => {
+  let userId;
+  try{
+    const user = await User.findOne({username:req.user.username})
+    userId = user._id;
+  } catch(err) {
+    console.log("error fetching userid");
+  }
   const { id } = req.params;
   let problem;
   try {
@@ -116,6 +123,7 @@ app.post("/problems/:id/submit", verifyToken, async (req, res) => {
     await execAsync(compileCommand);
   } catch (err) {
     cleanUp();
+    SaveToDb("Compilation Error");
     return res.json({
       status: "Compilation Error",
       message: err.stderr || err.message
@@ -127,12 +135,13 @@ app.post("/problems/:id/submit", verifyToken, async (req, res) => {
     const testcaseFile = path.join(testcaseFolder, `${i}.in`);
     fs.writeFileSync(testcaseFile, testcase.input);
     filesToClean.push(testcaseFile);
-
+    
     const executeCommand = `${executableFile} < ${testcaseFile}`;
     try {
       const { stdout } = await execAsync(executeCommand, { timeout: 3000 });
       if (stdout.trim() !== testcase.expectedOutput.trim()) {
         cleanUp();
+        SaveToDb(`Wrong Answer on testcase ${i + 1}`);
         return res.json({
           status: `Wrong Answer on testcase ${i + 1}`,
           message: ""
@@ -140,9 +149,12 @@ app.post("/problems/:id/submit", verifyToken, async (req, res) => {
       }
     } catch (err2) {
       cleanUp();
+      SaveToDb("Time Limit Exceeded");
       if (err2.killed && err2.signal === 'SIGTERM') {
+        SaveToDb("Time Limit Exceeded");
         return res.json({ status: "Time Limit Exceeded", message: "" });
       }
+      SaveToDb("Run Time Error");
       return res.json({
         status: "Run Time Error",
         message: err2.stderr || err2.message
@@ -151,16 +163,28 @@ app.post("/problems/:id/submit", verifyToken, async (req, res) => {
   }
 
   cleanUp();
+  SaveToDb("Accepted");
   return res.json({
     status: "Accepted",
     message: ""
   });
 
+    async function SaveToDb(status){
+    const newSubmission = new Submission({
+        code: code,
+        problem: id,
+        user: userId,  // ✅ use the already attached user document
+        status: status 
+    });
+    await newSubmission.save();
+}
   function cleanUp() {
     for (const file of filesToClean) {
       if (fs.existsSync(file)) fs.unlinkSync(file);
     }
   }
+
+
 });
 
 PORT=7000

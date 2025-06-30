@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config({path:"./.env"});
 const Problem = require('./models/Problem'); 
 const User = require('./models/User');
+const Submission = require('./models/Submission');
 const verifyToken = require('./middlewares/auth');
 const verifyAdmin = require('./middlewares/permission');
 
@@ -163,6 +164,17 @@ app.delete('/problems/:id',verifyToken,verifyAdmin,async (req,res)=>{
   } catch(err) {
       console.log(err.message);
       res.status(500).json({'message':"server error"});
+  }
+})
+
+app.get('/problems/:id/submissions',verifyToken,async (req,res)=>{
+  try{
+    const user = await User.findOne({username:req.user.username});
+    const {id} = req.params;
+    const submissions = await Submission.find({user:user._id,problem:id});
+    res.json(submissions);
+  } catch(err) {
+    res.status(500).json(err.message);
   }
 })
 
