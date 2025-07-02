@@ -2,10 +2,10 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const mongoose = require('mongoose'); 
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
-require('dotenv').config({path:"./.env"});
-const Problem = require('./models/Problem'); 
+require('dotenv').config({ path: "./.env" });
+const Problem = require('./models/Problem');
 const User = require('./models/User');
 const Submission = require('./models/Submission');
 const verifyToken = require('./middlewares/auth');
@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGO_URI, {
 });
 
 app.use(cors());
-app.use(express.json()); 
+app.use(express.json());
 
 
 app.get('/', (req, res) => {
@@ -68,12 +68,12 @@ app.post('/login', async (req, res) => {
 
 
 app.post('/signup', async (req, res) => {
-  const userExists = await User.findOne({username:req.body.username});
+  const userExists = await User.findOne({ username: req.body.username });
 
   if (userExists) {
     res.send("Username already exists ❌");
   } else {
-    const hashedPassword = await bcrypt.hash(req.body.password,10);
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
     NewUser = new User({
       username: req.body.username,
       password: hashedPassword
@@ -83,8 +83,62 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-app.get('/profile',verifyToken,(req,res)=>{
-  res.json({'user':req.user});
+app.get('/profile', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.user.username });
+    const submissions = await Submission.aggregate([
+      {
+      $match : { user: user._id},
+     },     
+     {
+        $lookup: {
+          from: "problems",                     
+          localField: "problem",                 
+          foreignField: "_id",                   
+          as: "referencedProblem"
+        }
+     },{
+        $unwind: "$referencedProblem"      
+      }
+    ]).sort({ createdAt: -1 });
+    const stats = await Submission.aggregate([
+      {
+        $match: {
+          user: user._id,
+          status: "Accepted"
+        }
+      },
+      {
+        $lookup: {
+          from: "problems",                     
+          localField: "problem",                 
+          foreignField: "_id",                   
+          as: "problemUserSubmissions"
+        }
+      },
+      {
+        $unwind: "$problemUserSubmissions"      
+      },
+      {
+        $group: {
+          _id: "$problemUserSubmissions.Difficulty",  
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    res.json({
+      'stats': stats,
+      'submissions':submissions,
+      'user':{
+        'username':user.username,
+        'role' : user.role
+      }
+    })
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json(err.message);
+  }
 });
 
 app.get('/problems', verifyToken, async (req, res) => {
@@ -117,7 +171,7 @@ app.post('/problems', verifyToken, verifyAdmin, async (req, res) => {
       ProblemHeading: req.body.ProblemHeading,
       Description: req.body.Description,
       Difficulty: req.body.Difficulty,
-      testcases:req.body.testcases,
+      testcases: req.body.testcases,
       Author: req.user.username // ✅ secure: use from token, not body
     });
 
@@ -130,50 +184,50 @@ app.post('/problems', verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
-app.put('/problems/:id',verifyToken,verifyAdmin, async (req,res)=>{
-  try{
-      const UpdatedProblem = {
-        'ProblemHeading' : req.body.ProblemHeading,
-        'Description' : req.body.Description,
-        'Difficulty' : req.body.Difficulty,
-        'testcases' : req.body.testcases,
-        'Author' : req.user.username
-      };
-      const updated = await Problem.findByIdAndUpdate(req.params.id,UpdatedProblem);
-      if(updated){
-        res.status(200).json({'message':"Updated Successfully"});
-      } else {
-        res.status(404).json({'message':"Problem Not found"});
-      }
+app.put('/problems/:id', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const UpdatedProblem = {
+      'ProblemHeading': req.body.ProblemHeading,
+      'Description': req.body.Description,
+      'Difficulty': req.body.Difficulty,
+      'testcases': req.body.testcases,
+      'Author': req.user.username
+    };
+    const updated = await Problem.findByIdAndUpdate(req.params.id, UpdatedProblem);
+    if (updated) {
+      res.status(200).json({ 'message': "Updated Successfully" });
+    } else {
+      res.status(404).json({ 'message': "Problem Not found" });
+    }
 
-  } catch(err) {
+  } catch (err) {
     console.error("❌ Error saving problem:", err.message);
     res.status(500).json({ message: "Server error saving problem ❌" });
   }
 });
 
-app.delete('/problems/:id',verifyToken,verifyAdmin,async (req,res)=>{
-  try{
+app.delete('/problems/:id', verifyToken, verifyAdmin, async (req, res) => {
+  try {
     const deleted = await Problem.findByIdAndDelete(req.params.id);
-    if(deleted){
-      res.status(200).json({'message':"Problem deleted"});
-    } 
-    else {
-      res.status(404).json({'message':"Problem Not Found"});
+    if (deleted) {
+      res.status(200).json({ 'message': "Problem deleted" });
     }
-  } catch(err) {
-      console.log(err.message);
-      res.status(500).json({'message':"server error"});
+    else {
+      res.status(404).json({ 'message': "Problem Not Found" });
+    }
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ 'message': "server error" });
   }
 })
 
-app.get('/problems/:id/submissions',verifyToken,async (req,res)=>{
-  try{
-    const user = await User.findOne({username:req.user.username});
-    const {id} = req.params;
-    const submissions = await Submission.find({user:user._id,problem:id}).sort({ createdAt:-1 });
+app.get('/problems/:id/submissions', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.user.username });
+    const { id } = req.params;
+    const submissions = await Submission.find({ user: user._id, problem: id }).sort({ createdAt: -1 });
     res.json(submissions);
-  } catch(err) {
+  } catch (err) {
     console.log(err.message);
     res.status(500).json(err.message);
   }
