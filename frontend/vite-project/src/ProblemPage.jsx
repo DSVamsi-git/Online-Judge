@@ -16,6 +16,7 @@ export default function ProblemPage() {
     const [code, setCode] = useState(localStorage.getItem(`${id}:code`) || '');
     const [testcase, setTestcase] = useState(localStorage.getItem(`${id}:testcase`) || '');
     const [runMessage, setRunMessage] = useState(null);
+    const [isAdmin,setIsAdmin] = useState(false);
     const navigate = useNavigate();
     function handleRun() {
         setRunMessage(null);
@@ -46,13 +47,26 @@ export default function ProblemPage() {
         ).then(function (response) { setRunMessage(response.data); console.log(response.data.message) })
             .catch((err) => { console.log(err.message); })
     }
+
+    const handleDelete= (async ()=>{
+        try{
+            await axios.delete(`${import.meta.env.VITE_SERVER_URI}/problems/${id}`,{
+                headers:{
+                    Authorization:`bearer ${localStorage.getItem('token')}`
+                }
+            })
+            navigate('/problems');
+        } catch(error) {
+            alert(error.message);
+        }
+    })
     useEffect(() => {
         const token = localStorage.getItem("token");
         axios.get(SERVER_URI + `/problems/${id}`, {
             headers: {
                 'Authorization': `bearer ${token}`
             }
-        }).then(function (response) { setProblem(response.data); setIsLoading(false); setIsSuccessful(true); })
+        }).then(function (response) { setProblem(response.data.problem); setIsAdmin(response.data.user.role==='admin'); setIsLoading(false); setIsSuccessful(true); })
             .catch(function (err) { setIsLoading(false); setIsSuccessful(false); setErrorMessage(err.message) });
     }, [id]);
 
@@ -71,6 +85,8 @@ export default function ProblemPage() {
 
             {/* Right side: Nav links */}
             <div className="flex gap-6 text-lg">
+               {isAdmin&&<button className="py-1 px-2 bg-amber-400 rounded-lg text-white text-lg hover:text-blue-400 transition" onClick={()=>{navigate(`/problems/${id}/modify`)}}>Modify</button>}
+               {isAdmin&&<button className="py-1 px-2 bg-red-400 rounded-lg text-white text-lg hover:text-blue-400 transition" onClick={handleDelete}>Delete</button>}
                 <Link to={`/problems/${id}/submissions`} className="hover:text-blue-400 transition">Submissions</Link>
                 <Link to="/problems" className="hover:text-blue-400 transition">Problems</Link>
                 <Link to="/profile" className="hover:text-blue-400 transition">Profile</Link>
@@ -87,8 +103,8 @@ export default function ProblemPage() {
                                 </span>
                             </div>
                         </div>
-                        <div className="max-w-7xl mx-auto bg-slate-500 rounded-b-2xl ">
-                            <div className=" text-lg text-white px-2 py-2 text-left ">
+                        <div className="max-w-7xl max-h-105 mx-auto bg-slate-500 rounded-b-2xl ">
+                            <div className="text-lg max-h-96 overflow-y-auto whitespace-pre-wrap text-white px-2 py-2 text-left">
                                 {problem.Description}
                             </div>
                         </div>

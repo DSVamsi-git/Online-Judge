@@ -1,15 +1,19 @@
+import { useParams } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+const server_URI = import.meta.env.VITE_SERVER_URI;
 
-export default function AddProblem() {
+export default function ModifyProblem() {
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const [heading, setHeading] = useState(() => localStorage.getItem('heading') || '');
-    const [description, setDescription] = useState(() => localStorage.getItem('description') || '');
+    const { id } = useParams();
+    const [heading, setHeading] = useState(() => localStorage.getItem(`${id}heading`) || '');
+    const [description, setDescription] = useState(() => localStorage.getItem(`${id}description`) || '');
     const [difficulty, setDifficulty] = useState('Easy');
     const [testcases, setTestcases] = useState(() => {
         try {
-            const saved = localStorage.getItem('testcases');
+            const saved = localStorage.getItem(`${id}testcases`);
             return saved ? JSON.parse(saved) : [{ input: '', expectedOutput: '' }];
         } catch {
             return [{ input: '', expectedOutput: '' }];
@@ -28,7 +32,7 @@ export default function AddProblem() {
 
     const handleSubmit = async () => {
         try {
-            await axios.post(`${import.meta.env.VITE_SERVER_URI}/AddProblem`, {
+            await axios.put(`${import.meta.env.VITE_SERVER_URI}/problems/${id}/modify`, {
                 ProblemHeading: heading,
                 Description: description,
                 Difficulty: difficulty,
@@ -38,7 +42,7 @@ export default function AddProblem() {
                     Authorization: `bearer ${localStorage.getItem('token')}`
                 }
             })
-            alert('Problem added successfully✅')
+            alert('Problem modified successfully✅')
             navigate('/profile');
         } catch (error) {
             alert(`${error.message}`);
@@ -51,10 +55,57 @@ export default function AddProblem() {
     };
 
     useEffect(() => {
-        localStorage.setItem('testcases', JSON.stringify(testcases));
+        const fetchData = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                navigate('/login');
+                return;
+            } console.log('line 63');
+            try {
+                const response = await axios.get(`${server_URI}/problems/${id}/modify`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                setHeading(response.data.ProblemHeading); localStorage.setItem(`${id}heading`, response.data.ProblemHeading);
+                setDescription(response.data.Description); localStorage.setItem(`${id}description`, response.data.Description);
+                setDifficulty(response.data.Difficulty); localStorage.setItem(`${id}difficulty`, response.data.Difficulty);
+                setTestcases(response.data.testcases); localStorage.setItem(`${id}testcases`, JSON.stringify(response.data.testcases));
+                setLoading(false);
+            } catch (err) {
+                navigate('/login');
+            }
+        };
+
+        fetchData();
+    }, [navigate]);
+
+    useEffect(() => {
+        localStorage.setItem(`${id}testcases`, JSON.stringify(testcases));
     }, [testcases]);
 
+    if (loading) return <div>Loading...</div>;
+
     return (
+        <>
+         <div className="p-4">
+                <nav className="w-full flex justify-between items-center bg-slate-900 text-white  py-4 shadow-md rounded-2xl">
+                    {/* Left side: Brand */}
+                    <div className="flex items-center gap-2 text-2xl font-bold text-blue-400">
+                        <span className="text-blue-400">
+                            Code<span className="text-gray-400">Case</span>💼
+                        </span>
+                    </div>
+
+                    {/* Right side: Nav links */}
+                    <div className="flex gap-6 text-lg">
+                        <Link to={`/problems/${id}`} className="hover:text-blue-400 transition">Problem</Link>
+                        <Link to="/problems" className="hover:text-blue-400 transition">Problems</Link>
+                        <Link to="/profile" className="hover:text-blue-400 transition">Profile</Link>
+                        <button className="py-1 px-2 bg-amber-400 rounded-lg text-white text-lg hover:text-blue-400 transition" onClick={() => { localStorage.removeItem("token"); navigate('/login') }}>logout</button>
+                    </div>
+                </nav>
+            </div>
         <div className='w-full flex min-h-screen items-center justify-center'>
             <div className='w-1/2 bg-slate-700 p-4 rounded-2xl'>
                 <div className='my-4'>
@@ -131,5 +182,6 @@ export default function AddProblem() {
                 </div>
             </div>
         </div>
+        </>
     );
 }

@@ -153,7 +153,7 @@ export default function Profile() {
                     <td className="border border-white px-4 py-2 text-amber-500">
                       {new Date(submission.createdAt).toLocaleString()}
                     </td>
-                    <td className="border border-white px-4 py-2"><button onClick={() => { localStorage.setItem(`${id}:code`, submission.code); navigate(`/problems/${id}`); }} className="rounded-lg bg-black text-amber-500 hover:text-blue-600">{`</>`}</button></td>
+                    <td className="border border-white px-4 py-2"><button onClick={() => { localStorage.setItem(`${submission.problem}:code`, submission.code); navigate(`/problems/${submission.problem}`); }} className="rounded-lg bg-black text-amber-500 hover:text-blue-600">{`</>`}</button></td>
                   </tr>
                 ))}
               </tbody>

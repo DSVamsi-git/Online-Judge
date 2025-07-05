@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import './App.css';
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const server_URI = import.meta.env.VITE_SERVER_URI;
 
@@ -43,56 +43,76 @@ export default function ProblemTable() {
 
   return (
     <>
-    <div className="">      
-          <nav className="flex justify-between items-center bg-slate-900 text-white  py-4  rounded-2xl">
-      {/* Left side: Brand */}
-      <div className="flex items-center gap-2 text-2xl font-bold text-blue-400">
-        <span className="text-blue-400">
-        Code<span className="text-gray-400">Case</span>💼
-        </span>
-      </div>
+      <div className="">
+        <nav className="flex justify-between items-center bg-slate-900 text-white  py-4  rounded-2xl">
+          {/* Left side: Brand */}
+          <div className="flex items-center gap-2 text-2xl font-bold text-blue-400">
+            <span className="text-blue-400">
+              Code<span className="text-gray-400">Case</span>💼
+            </span>
+          </div>
 
-      {/* Right side: Nav links */}
-      <button
-        className="bg-amber-400 text-white text-lg px-2 py-1 rounded-lg hover:text-blue-400 transition"
-        onClick={() => {
-          localStorage.removeItem("token");
-          navigate('/login');
-        }}
-      >
-        Logout
-      </button>
-    </nav>
-    </div>
-    <div className="px-6 py-3">
-      <h2 className="text-2xl font-bold mb-4">Problems</h2>
-      <div className="bg-gray-800 rounded-2xl">
-      <table className="table-auto w-full border border-gray-300 overflow-hidden rounded-2xl">
-        <thead>
-          <tr className="bg-gray-500 rounded-2xl">
-            <th className="border px-4 py-2">Heading</th>
-            <th className="border px-4 py-2">Description</th>
-            <th className="border px-4 py-2">Difficulty</th>
-          </tr>
-        </thead>
-        <tbody>
-          {problems.map((problem, index) => (
-            <tr key={index}>
-              <td className="border px-4 py-2"> 
-                <a href={`/problems/${problem._id}`} className="text-amber-500 hover:underline">{problem.ProblemHeading}</a>
-              </td>
-              <td className="border px-4 py-2">
-                <a href={`/problems/${problem._id}`} className="text-amber-500 hover:underline">{problem.Description}</a>
-              </td>
-              <td className="border px-4 py-2">
-                <button onClick={()=>{navigate(`/problems/${problem._id}`)}} className={` py-1 px-3 rounded-xl ${problem.Difficulty === "Easy"? "bg-green-600": problem.Difficulty === "Medium" ? "bg-yellow-400" : "bg-red-600"} hover:text-blue-600`}>{problem.Difficulty}</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          {/* Right side: Nav links */}
+         <div>
+          <Link to="/profile" className="hover:text-blue-400 transition  text-lg mr-4">Profile</Link>
+          <button
+            className="bg-amber-400 text-white text-lg px-2 py-1 rounded-lg hover:text-blue-400 transition"
+            onClick={() => {
+              localStorage.removeItem("token");
+              navigate('/login');
+            }}
+          >
+            Logout
+          </button>
+          </div>
+        </nav>
       </div>
-    </div>
-  </>
+      <div className="px-6 py-3">
+        <h2 className="text-2xl font-bold mb-4">Problems</h2><div className="rounded-2xl overflow-hidden border border-gray-700 shadow-lg">
+          <table className="table-auto w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-500 text-white rounded-t-2xl">
+                <th className="px-4 py-2">Heading</th>
+                <th className="px-4 py-2">Description</th>
+                <th className="px-4 py-2">Difficulty</th>
+              </tr>
+            </thead>
+            <tbody>
+              {problems.map((problem, index) => (
+                <tr
+                  key={index}
+                  className={`text-amber-500 hover:bg-gray-700 transition ${index === problems.length - 1 ? "rounded-b-2xl" : ""
+                    }`}
+                >
+                  <td className="px-4 py-2 border-t border-gray-700">
+                    <a href={`/problems/${problem._id}`} className="hover:underline">
+                      {problem.ProblemHeading}
+                    </a>
+                  </td>
+                  <td className="px-4 py-2 border-t border-gray-700 max-w-xs truncate">
+                    <a href={`/problems/${problem._id}`} className="hover:underline block">
+                      {problem.Description}
+                    </a>
+                  </td>
+                  <td className="px-4 py-2 border-t border-gray-700">
+                    <button
+                      onClick={() => navigate(`/problems/${problem._id}`)}
+                      className={`py-1 px-3 rounded-xl text-white ${problem.Difficulty === "Easy"
+                          ? "bg-green-600"
+                          : problem.Difficulty === "Medium"
+                            ? "bg-yellow-400"
+                            : "bg-red-600"
+                        } hover:text-blue-600`}
+                    >
+                      {problem.Difficulty}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
   );
 }

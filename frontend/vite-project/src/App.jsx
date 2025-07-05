@@ -8,6 +8,7 @@ import ProblemTable from './ProblemTable';
 import ProblemPage from './ProblemPage';
 import Submissions from './Submissions';
 import AddProblem from './AddProblem';
+import ModifyProblem from './ModifyProblem';
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/problems/:id" element={<ProblemPage />} />
         <Route path="/problems/:id/submissions" element={<Submissions/>}/>
         <Route path="/AddProblem" element={<AddProblem/>}/>
+        <Route path="/problems/:id/modify" element={<ModifyProblem/>}/>
       </Routes>
     </Router>
   );

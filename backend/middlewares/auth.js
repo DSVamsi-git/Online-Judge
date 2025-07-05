@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken'); // ✅ typo: should be 'jsonwebtoken', not 'jsonwebtokens'
 require('dotenv').config();
 
-function verifyToken(req, res, next) {
+function verifyToken(req, res, next) {                              console.log("in auth");
   const authHeader = req.headers['authorization']; // ✅ headers are lowercase
 
   if (!authHeader) {

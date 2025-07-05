@@ -156,7 +156,7 @@ app.get('/problems/:id', verifyToken, async (req, res) => {
     if (!problem) {
       return res.status(404).json({ message: "Problem not found" });
     }
-    res.status(200).json(problem);
+    res.status(200).json({problem:problem,user:{role:req.user.role}});
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -165,7 +165,7 @@ app.get('/problems/:id', verifyToken, async (req, res) => {
 // Make sure this import is correct
 
 
-app.post('/problems', verifyToken, verifyAdmin, async (req, res) => {
+app.post('/AddProblem', verifyToken, verifyAdmin, async (req, res) => {  console.log("line 168");
   try {
     const newProblem = new Problem({
       ProblemHeading: req.body.ProblemHeading,
@@ -184,15 +184,15 @@ app.post('/problems', verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
-app.put('/problems/:id', verifyToken, verifyAdmin, async (req, res) => {
-  try {
+app.put('/problems/:id/modify', verifyToken, verifyAdmin, async (req, res) => {
+  try {                                                                console.log('line 188');
     const UpdatedProblem = {
       'ProblemHeading': req.body.ProblemHeading,
       'Description': req.body.Description,
       'Difficulty': req.body.Difficulty,
       'testcases': req.body.testcases,
       'Author': req.user.username
-    };
+    };                                                                console.log('line 195');
     const updated = await Problem.findByIdAndUpdate(req.params.id, UpdatedProblem);
     if (updated) {
       res.status(200).json({ 'message': "Updated Successfully" });
@@ -208,6 +208,11 @@ app.put('/problems/:id', verifyToken, verifyAdmin, async (req, res) => {
 
 app.delete('/problems/:id', verifyToken, verifyAdmin, async (req, res) => {
   try {
+    const {id} = req.params;                                                                  
+    const problem = await Problem.findOne({ _id : id });                                     
+    if(problem.Author!==req.user.username){                                                   
+     return res.status(403).json({message:`contact author : ${problem.Author}`});                 
+    }
     const deleted = await Problem.findByIdAndDelete(req.params.id);
     if (deleted) {
       res.status(200).json({ 'message': "Problem deleted" });
@@ -217,7 +222,7 @@ app.delete('/problems/:id', verifyToken, verifyAdmin, async (req, res) => {
     }
   } catch (err) {
     console.log(err.message);
-    res.status(500).json({ 'message': "server error" });
+    res.status(500).json({ 'message': `${err.message}` });
   }
 })
 
@@ -231,6 +236,20 @@ app.get('/problems/:id/submissions', verifyToken, async (req, res) => {
     console.log(err.message);
     res.status(500).json(err.message);
   }
+})
+
+app.get('/problems/:id/modify', verifyToken, verifyAdmin,  async (req, res) => {
+  try {
+    const {id} = req.params;                                                                  
+    const problem = await Problem.findOne({ _id : id });                                     
+    if(problem.Author!==req.user.username){                                                   
+     return res.status(403).json({message:`contact author : ${problem.Author}`});                 
+    }
+    res.json(problem);                                                                        
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json(err.message);
+  }  
 })
 
 const PORT = 5000;
