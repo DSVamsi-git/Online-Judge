@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const User = require("../../backend/models/User");
 const Problem = require("../../backend/models/Problem");
 
-SubmissionSchema = mongoose.Schema({
+const SubmissionSchema = mongoose.Schema({
     code:{
         type:String,
         required:true,
@@ -23,7 +23,15 @@ SubmissionSchema = mongoose.Schema({
     },
     language: {
         type: String,
-        default: 'cpp' // in case you want to support multiple langs later
+        default: 'cpp' 
+    },
+    score: {
+        type : Number,
+        required: false
+    },
+    feedback: {
+        type: String,
+        required: false
     }
 },
 {timestamps:true}

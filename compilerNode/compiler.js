@@ -2,10 +2,10 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const mongoose = require('mongoose'); 
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 require('dotenv').config({path:"./.env"});
-const Problem = require('./models/Problem'); 
+const Problem = require('./models/Problem');
 const User = require('./models/User');
 const Submission = require('./models/Submission')
 const verifyToken = require('../backend/middlewares/auth');
@@ -18,6 +18,11 @@ const { stdout, stderr } = require('process');
 const { promisify } = require('util');
 const execAsync = promisify(exec);
 
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+
+
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -28,7 +33,7 @@ mongoose.connect(process.env.MONGO_URI, {
 });
 
 app.use(cors());
-app.use(express.json());  
+app.use(express.json());
 
 
 app.post("/problems/:id/run", verifyToken, async (req,res)=>{
@@ -95,6 +100,7 @@ app.post("/problems/:id/submit", verifyToken, async (req, res) => {
     userId = user._id;
   } catch(err) {
     console.log("error fetching userid");
+    return res.status(404).json({message:err.message});
   }
   const { id } = req.params;
   let problem;
@@ -117,13 +123,24 @@ app.post("/problems/:id/submit", verifyToken, async (req, res) => {
   fs.writeFileSync(cppfile, code);
 
   const filesToClean = [cppfile, executableFile];
+  const directoriesToClean = [testcaseFolder];
+
+  // Make sure cleanup function is defined before use in catch blocks
+  function cleanUp() {
+    for (const file of filesToClean) {
+      if (fs.existsSync(file)) fs.unlinkSync(file);
+    }
+    for (const directory of directoriesToClean) {
+      if (fs.existsSync(directory)) fs.rmSync(directory, { recursive: true, force: true });
+    }
+  }
 
   const compileCommand = `g++ ${cppfile} -o ${executableFile}`;
   try {
     await execAsync(compileCommand);
   } catch (err) {
     cleanUp();
-    SaveToDb("Compilation Error");
+    await SaveToDb({status:"Compilation Error"});
     return res.json({
       status: "Compilation Error",
       message: err.stderr || err.message
@@ -135,13 +152,13 @@ app.post("/problems/:id/submit", verifyToken, async (req, res) => {
     const testcaseFile = path.join(testcaseFolder, `${i}.in`);
     fs.writeFileSync(testcaseFile, testcase.input);
     filesToClean.push(testcaseFile);
-    
+
     const executeCommand = `${executableFile} < ${testcaseFile}`;
     try {
       const { stdout } = await execAsync(executeCommand, { timeout: 3000 });
       if (stdout.trim() !== testcase.expectedOutput.trim()) {
         cleanUp();
-        SaveToDb(`Wrong Answer on testcase ${i + 1}`);
+        await SaveToDb({status:`Wrong Answer on testcase ${i + 1}`});
         return res.json({
           status: `Wrong Answer on testcase ${i + 1}`,
           message: ""
@@ -149,12 +166,11 @@ app.post("/problems/:id/submit", verifyToken, async (req, res) => {
       }
     } catch (err2) {
       cleanUp();
-      SaveToDb("Time Limit Exceeded");
       if (err2.killed && err2.signal === 'SIGTERM') {
-        SaveToDb("Time Limit Exceeded");
+        await SaveToDb({status:"Time Limit Exceeded"});
         return res.json({ status: "Time Limit Exceeded", message: "" });
       }
-      SaveToDb("Run Time Error");
+      await SaveToDb({status:"Run Time Error"});
       return res.json({
         status: "Run Time Error",
         message: err2.stderr || err2.message
@@ -162,32 +178,109 @@ app.post("/problems/:id/submit", verifyToken, async (req, res) => {
     }
   }
 
-  cleanUp();
-  SaveToDb("Accepted");
-  return res.json({
-    status: "Accepted",
-    message: ""
-  });
+  try {
+    // --- FIX STARTS HERE: The full contents and generationConfig are restored ---
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `Evaluate the following code for cleanliness as if it were written during a software engineering interview.
 
-    async function SaveToDb(status){
-    const newSubmission = new Submission({
-        code: code,
-        problem: id,
-        user: userId,  // ✅ use the already attached user document
-        status: status 
-    });
-    await newSubmission.save();
+1. Assign a cleanliness score out of 100.
+2. Justify the score briefly.
+3. Give actionable feedback on:
+   - Code formatting and readability
+   - Naming conventions
+   - Modularity and structure
+   - Elimination of duplication (DRY principle)
+   - Best practices (avoid bad habits, use idiomatic constructs)
+
+Respond in the following JSON format:
+{
+  "score": <number>,
+  "feedback": "<combined explanation and feedback>"
 }
-  function cleanUp() {
-    for (const file of filesToClean) {
-      if (fs.existsSync(file)) fs.unlinkSync(file);
+
+Here is the candidate's code:
+
+${code}`
+            }
+          ]
+        }
+      ],
+      generationConfig: {
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+        maxOutputTokens: 1024
+      }
+    });
+    // --- FIX ENDS HERE ---
+
+    let responseText = await result.response.text();
+    const jsonStartIndex = responseText.indexOf('{');
+    const jsonEndIndex = responseText.lastIndexOf('}');
+
+    if (jsonStartIndex === -1 || jsonEndIndex === -1) {
+        throw new Error("Could not find a valid JSON object in the AI response.");
     }
+
+    const jsonString = responseText.substring(jsonStartIndex, jsonEndIndex + 1);
+    const response = JSON.parse(jsonString);
+
+    await SaveToDb({
+      status: "Accepted",
+      message: {
+        score: response.score,
+        feedback: response.feedback,
+      },
+    });
+
+    cleanUp();
+    return res.json({
+      status: "Accepted",
+      message: {
+        score: response.score,
+        feedback: response.feedback,
+      },
+    });
+  } catch (err) {
+    cleanUp();
+    console.error("AI Evaluation failed:", err);
+
+    const statusCode = err.status || 500;
+    const statusText = err.statusText || "AI Evaluation Failed";
+    
+    return res.status(statusCode).json({
+      status: statusText,
+      message: "Code passed all test cases, but AI feedback could not be generated. Please try again later.",
+    });
   }
 
 
+  async function SaveToDb(result){
+    const submissionData = {
+      code: code,
+      problem: id,
+      user: userId,
+      status: result.status
+    };
+
+    if (result.message && result.message.score !== undefined) {
+      submissionData.score = result.message.score;
+    }
+    if (result.message && result.message.feedback !== undefined) {
+      submissionData.feedback = result.message.feedback;
+    }
+
+    const newSubmission = new Submission(submissionData);
+    await newSubmission.save();
+  }
 });
 
-PORT=7000
+const PORT = 7000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
