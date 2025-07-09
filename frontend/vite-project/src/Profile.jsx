@@ -11,6 +11,16 @@ import {
 import { Pie } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
+import {
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip  as RechartsTooltip,
+  ResponsiveContainer
+} from 'recharts';
+
 
 
 const server_URI = import.meta.env.VITE_SERVER_URI;
@@ -19,6 +29,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [chartData, setChartData] = useState(null);
+  const [graphData, setGraphData] = useState(null);
   const [userName, setUsername] = useState("");
   const [userRole, setUserRole] = useState("user");
   const [submissionList, setSubmissionList] = useState(null);
@@ -58,6 +69,15 @@ export default function Profile() {
             }
           ]
         });
+
+        const cleanedData = submissions
+          .filter((s) => typeof s.score === "number") // ensure score exists
+          .map((s) => ({
+            time: new Date(s.createdAt).getTime(), // timestamp for X-axis
+            score: s.score                         // score for Y-axis
+          }));
+
+        setGraphData(cleanedData);
         setLoading(false);
       } catch (err) {
         navigate('/login');
@@ -103,7 +123,7 @@ export default function Profile() {
         </nav>
       </div>
       <div className='flex justify-between items-center'>
-        <div className='bg-slate-500 h-64 w-1/2 rounded-2xl m-2 text-amber-600 text-4xl'>{userName}</div>
+        <div className='bg-slate-500 h-64 w-1/2 rounded-2xl m-2 text-amber-600 text-4xl items-center'>{userName}</div>
         <div className='bg-slate-500 h-64 w-1/2 rounded-2xl m-2 py-2 px-16 border-amber-500'>
           <Pie
             data={chartData}
@@ -131,6 +151,33 @@ export default function Profile() {
 
         </div>
       </div>
+      {graphData && graphData.length > 0 && (
+        <div className="m-4 p-4 bg-slate-700 rounded-2xl text-white">
+          <h2 className="text-2xl text-amber-400 mb-4">Score Over Time</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={graphData}>
+              <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
+              <XAxis
+                dataKey="time"
+                domain={['auto', 'auto']}
+                name="Time"
+                tickFormatter={(unixTime) =>
+                  new Date(unixTime).toLocaleDateString()
+                }
+                type="number"
+              />
+              <YAxis />
+              <RechartsTooltip
+                labelFormatter={(label) =>
+                  new Date(label).toLocaleString()
+                }
+              />
+              <Line type="monotone" dataKey="score" stroke="#facc15" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
       <div className='h-128, w-full'>
         <div className="px-6 py-3">
           <div className="bg-gray-800 rounded-2xl">
@@ -141,6 +188,7 @@ export default function Profile() {
                   <th className="border px-4 py-2">Problen</th>
                   <th className="border px-4 py-2">Language</th>
                   <th className="border px-4 py-2">Time</th>
+                  <th className="border px-4 py-2">Clean Score</th>
                   <th className="border px-4 py-2">Code</th>
                 </tr>
               </thead>
@@ -153,7 +201,8 @@ export default function Profile() {
                     <td className="border border-white px-4 py-2 text-amber-500">
                       {new Date(submission.createdAt).toLocaleString()}
                     </td>
-                    <td className="border border-white px-4 py-2"><button onClick={() => { localStorage.setItem(`${submission.problem}:code`, submission.code); navigate(`/problems/${submission.problem}`); }} className="rounded-lg bg-black text-amber-500 hover:text-blue-600">{`</>`}</button></td>
+                    <td className="border border-white px-4 py-2 text-amber-500">{submission.score}</td>
+                    <td className="border border-white px-4 py-2"><button onClick={() => { localStorage.setItem(`${submission.problem}:code`, submission.code); localStorage.setItem(`${submission.problem}:runMessage`,JSON.stringify({status:submission.status, message:{score:submission.score, feedback: submission.feedback}})); navigate(`/problems/${submission.problem}`); }} className="rounded-lg bg-black text-amber-500 hover:text-blue-600">{`</>`}</button></td>
                   </tr>
                 ))}
               </tbody>

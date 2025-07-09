@@ -88,7 +88,10 @@ app.get('/profile', verifyToken, async (req, res) => {
     const user = await User.findOne({ username: req.user.username });
     const submissions = await Submission.aggregate([
       {
-      $match : { user: user._id},
+      $match : { 
+          user: user._id,
+          status: "Accepted"
+        },
      },     
      {
         $lookup: {

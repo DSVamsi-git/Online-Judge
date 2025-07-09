@@ -15,7 +15,10 @@ export default function ProblemPage() {
     const { id } = useParams();
     const [code, setCode] = useState(localStorage.getItem(`${id}:code`) || '');
     const [testcase, setTestcase] = useState(localStorage.getItem(`${id}:testcase`) || '');
-    const [runMessage, setRunMessage] = useState(null);
+    const [runMessage, setRunMessage] = useState(() => {
+        const saved = localStorage.getItem(`${id}:runMessage`);
+        return saved ? JSON.parse(saved) : null;
+    });
     const [isAdmin,setIsAdmin] = useState(false);
     const navigate = useNavigate();
     function handleRun() {
@@ -44,7 +47,7 @@ export default function ProblemPage() {
                 },
 
             }
-        ).then(function (response) { setRunMessage(response.data); console.log(response.data.message) })
+        ).then(function (response) { setRunMessage(response.data); localStorage.setItem(`${id}:runMessage`, JSON.stringify(response.data)); console.log(response.data.message) })
             .catch((err) => { alert(err.message); })
     }
 
@@ -161,45 +164,43 @@ export default function ProblemPage() {
                         <button onClick={handleSubmit} className="bg-green-400 mt-4 mb-8 text-2xl text-white w-3xs rounded-xl focus:ring-green-600  focus:ring-2">submit</button>
                     </span>
                 </div>
-{runMessage && (
-  <div className="px-4">
-    <div className="p-4 mt-2 bg-slate-500 w-full shadow-black rounded-2xl">
-      <div className="flex items-center gap-4 text-left font-semibold text-xl">
-        <span className="text-amber-400">Result:</span>
-        <span className={`${(runMessage.status === "Successful" || runMessage.status === "Accepted") ? "text-green-600" : "text-red-600"} text-2xl`}>
-          {runMessage.status}
-        </span>
-        {runMessage.message?.score && (
-          <div className="text-green-400 text-xl">Score: {runMessage.message.score}</div>
-        )}
-      </div>
+                {runMessage && (
+                <div className="px-4">
+                    <div className="p-4 mt-2 bg-slate-500 w-full shadow-black rounded-2xl">
+                    <div className="flex items-center gap-4 text-left font-semibold text-xl">
+                        <span className="text-amber-400">Result:</span>
+                        <span className={`${(runMessage.status === "Successful" || runMessage.status === "Accepted") ? "text-green-600" : "text-red-600"} text-2xl`}>
+                        {runMessage.status}
+                        </span>
+                        {runMessage.message?.score && (
+                        <div className="text-green-400 text-xl">Score: {runMessage.message.score}</div>
+                        )}
+                    </div>
 
-      {typeof runMessage.message?.feedback === "string" && (
-        <div className="mt-4 text-gray-100 text-md prose prose-invert max-w-none text-left leading-relaxed">
-          <strong className="block text-lg text-amber-300 mb-2">Feedback:</strong>
-          <ReactMarkdown
-            components={{
-              strong: ({ node, ...props }) => <strong className="text-amber-300" {...props} />,
-              h2: ({ node, ...props }) => <h2 className="text-xl mt-4 text-blue-400" {...props} />,
-              ul: ({ node, ...props }) => <ul className="list-disc ml-6 mt-2" {...props} />,
-              li: ({ node, ...props }) => <li className="mb-1" {...props} />,
-            }}
-          >
-            {runMessage.message.feedback}
-          </ReactMarkdown>
-        </div>
-      )}
+                    {typeof runMessage.message?.feedback === "string" && (
+                        <div className="mt-4 text-gray-100 text-md prose prose-invert max-w-none text-left leading-relaxed">
+                        <strong className="block text-lg text-amber-300 mb-2">Feedback:</strong>
+                        <ReactMarkdown
+                            components={{
+                            strong: ({ node, ...props }) => <strong className="text-amber-300" {...props} />,
+                            h2: ({ node, ...props }) => <h2 className="text-xl mt-4 text-blue-400" {...props} />,
+                            ul: ({ node, ...props }) => <ul className="list-disc ml-6 mt-2" {...props} />,
+                            li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+                            }}
+                        >
+                            {runMessage.message.feedback}
+                        </ReactMarkdown>
+                        </div>
+                    )}
 
-      {typeof runMessage.message === "string" && (
-        <div className="text-md text-white px-2 py-2 text-left">
-          {runMessage.message}
-        </div>
-      )}
-    </div>
-  </div>
-)}
-
-
+                    {typeof runMessage.message === "string" && (
+                        <div className="text-md text-white px-2 py-2 text-left">
+                        {runMessage.message}
+                        </div>
+                    )}
+                    </div>
+                </div>
+                )}
             </div>
         )
     }

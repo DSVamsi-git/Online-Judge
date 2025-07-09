@@ -8,8 +8,8 @@ require('dotenv').config({path:"./.env"});
 const Problem = require('./models/Problem');
 const User = require('./models/User');
 const Submission = require('./models/Submission')
-const verifyToken = require('../backend/middlewares/auth');
-const verifyAdmin = require('../backend/middlewares/permission');
+const verifyToken = require('./middlewares/auth');
+const verifyAdmin = require('./middlewares/permission');
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
