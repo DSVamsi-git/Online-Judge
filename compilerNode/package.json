@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "compiler.js",
   "scripts": {
-    "dev": "nodemon compiler.js"
+    "dev": "nodemon compiler.js",
+    "start": "node compiler.js" 
   },
   "dependencies": {
     "@google/genai": "^1.8.0",

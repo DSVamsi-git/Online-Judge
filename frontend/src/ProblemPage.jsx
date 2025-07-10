@@ -160,8 +160,8 @@ export default function ProblemPage() {
                         className="w-1/2 h-50 p-2 text-md bg-slate-700 text-amber-50  rounded-2xl"
                     />
                     <span className=" ml-8 bg-slate-500 shadow-lg h-50 w-1/2 rounded-2xl">
-                        <button onClick={handleRun} className="bg-amber-300 mt-8  mb-4 gap mx-2 text-2xl text-white w-3xs rounded-xl focus:ring-amber-500  focus:ring-2">run</button>
-                        <button onClick={handleSubmit} className="bg-green-400 mt-4 mb-8 text-2xl text-white w-3xs rounded-xl focus:ring-green-600  focus:ring-2">submit</button>
+                        <button onClick={handleRun} className="bg-amber-300 mt-8  mb-4 gap mx-2 text-2xl text-white w-3xs rounded-xl focus:bg-amber-500 ">run</button>
+                        <button onClick={handleSubmit} className="bg-green-400 mt-4 mb-8 text-2xl text-white w-3xs rounded-xl focus:bg-green-600  focus:ring-2">submit</button>
                     </span>
                 </div>
                 {runMessage && (

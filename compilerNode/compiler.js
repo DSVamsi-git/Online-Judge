@@ -280,7 +280,7 @@ ${code}`
   }
 });
 
-const PORT = 7000;
+const PORT = 7600;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

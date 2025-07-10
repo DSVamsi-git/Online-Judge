@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const User = require("../../backend/models/User");
-const Problem = require("../../backend/models/Problem");
+const User = require("./User");
+const Problem = require("./Problem");
 
 const SubmissionSchema = mongoose.Schema({
     code:{
