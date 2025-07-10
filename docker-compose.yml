@@ -3,7 +3,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "5160:80"
+      - "5170:80"
     depends_on:
       - backend
       - compiler
@@ -11,14 +11,14 @@ services:
   backend:
     build: ./backend
     ports:
-      - "5600:5600"
+      - "5000:5000"
     environment:
       - .env
     restart: unless-stopped
   compiler:
     build: ./compilerNode
     ports:
-      - "7600:7600"
+      - "7000:7000"
     environment:
       - .env
     restart: unless-stopped
