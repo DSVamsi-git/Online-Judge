@@ -44,11 +44,11 @@ export default function ProblemTable() {
   return (
     <>
       <div className="">
-        <nav className="flex justify-between items-center bg-slate-900 text-white  py-4  rounded-2xl">
+        <nav className="flex justify-between items-center text-white  py-4  rounded-2xl">
           {/* Left side: Brand */}
           <div className="flex items-center gap-2 text-2xl font-bold text-blue-400">
             <span className="text-blue-400">
-              Code<span className="text-gray-400">Case</span>💼
+              Code<span className="text-violet-600">Shrine</span>⛩️
             </span>
           </div>
 
@@ -59,7 +59,7 @@ export default function ProblemTable() {
             className="bg-amber-400 text-white text-lg px-2 py-1 rounded-lg hover:text-blue-400 transition"
             onClick={() => {
               localStorage.removeItem("token");
-              navigate('/login');
+              navigate('/home');
             }}
           >
             Logout
@@ -69,7 +69,7 @@ export default function ProblemTable() {
       </div>
       <div className="px-6 py-3">
         <h2 className="text-2xl font-bold mb-4">Problems</h2><div className="rounded-2xl overflow-hidden border border-gray-700 shadow-lg">
-          <table className="table-auto w-full text-left border-collapse">
+          <table className="glass-card table-auto w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-500 text-white rounded-t-2xl">
                 <th className="px-4 py-2">Heading</th>
@@ -81,20 +81,20 @@ export default function ProblemTable() {
               {problems.map((problem, index) => (
                 <tr
                   key={index}
-                  className={`text-amber-500 hover:bg-gray-700 transition ${index === problems.length - 1 ? "rounded-b-2xl" : ""
+                  className={`text-amber-500 transition ${index === problems.length - 1 ? "rounded-b-2xl" : ""
                     }`}
                 >
-                  <td className="px-4 py-2 border-t border-gray-700">
+                  <td className="px-4 py-2">
                     <a href={`/problems/${problem._id}`} className="hover:underline">
                       {problem.ProblemHeading}
                     </a>
                   </td>
-                  <td className="px-4 py-2 border-t border-gray-700 max-w-xs truncate">
+                  <td className="px-4 py-2 max-w-xs truncate">
                     <a href={`/problems/${problem._id}`} className="hover:underline block">
                       {problem.Description}
                     </a>
                   </td>
-                  <td className="px-4 py-2 border-t border-gray-700">
+                  <td className="px-4 py-2">
                     <button
                       onClick={() => navigate(`/problems/${problem._id}`)}
                       className={`py-1 px-3 rounded-xl text-white ${problem.Difficulty === "Easy"

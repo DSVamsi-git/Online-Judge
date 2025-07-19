@@ -58,7 +58,7 @@ export default function ModifyProblem() {
         const fetchData = async () => {
             const token = localStorage.getItem("token");
             if (!token) {
-                navigate('/login');
+                navigate('/home');
                 return;
             } console.log('line 63');
             try {
@@ -73,7 +73,7 @@ export default function ModifyProblem() {
                 setTestcases(response.data.testcases); localStorage.setItem(`${id}testcases`, JSON.stringify(response.data.testcases));
                 setLoading(false);
             } catch (err) {
-                navigate('/login');
+                navigate('/home');
             }
         };
 
@@ -89,11 +89,11 @@ export default function ModifyProblem() {
     return (
         <>
          <div className="p-4">
-                <nav className="w-full flex justify-between items-center bg-slate-900 text-white  py-4 shadow-md rounded-2xl">
+                <nav className="w-full flex justify-between items-center text-white  py-4 shadow-md rounded-2xl">
                     {/* Left side: Brand */}
                     <div className="flex items-center gap-2 text-2xl font-bold text-blue-400">
                         <span className="text-blue-400">
-                            Code<span className="text-gray-400">Case</span>💼
+                            Code<span className="text-violet-600">Shrine</span>⛩️
                         </span>
                     </div>
 
@@ -102,7 +102,7 @@ export default function ModifyProblem() {
                         <Link to={`/problems/${id}`} className="hover:text-blue-400 transition">Problem</Link>
                         <Link to="/problems" className="hover:text-blue-400 transition">Problems</Link>
                         <Link to="/profile" className="hover:text-blue-400 transition">Profile</Link>
-                        <button className="py-1 px-2 bg-amber-400 rounded-lg text-white text-lg hover:text-blue-400 transition" onClick={() => { localStorage.removeItem("token"); navigate('/login') }}>logout</button>
+                        <button className="py-1 px-2 bg-amber-400 rounded-lg text-white text-lg hover:text-blue-400 transition" onClick={() => { localStorage.removeItem("token"); navigate('/home') }}>logout</button>
                     </div>
                 </nav>
             </div>
