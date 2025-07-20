@@ -89,7 +89,7 @@ export default function ModifyProblem() {
     return (
         <>
          <div className="p-4">
-                <nav className="w-full flex justify-between items-center text-white  py-4 shadow-md rounded-2xl">
+                <nav className="w-full flex justify-between items-center text-white  py-4 rounded-2xl">
                     {/* Left side: Brand */}
                     <div className="flex items-center gap-2 text-2xl font-bold text-blue-400">
                         <span className="text-blue-400">
@@ -107,7 +107,7 @@ export default function ModifyProblem() {
                 </nav>
             </div>
         <div className='w-full flex min-h-screen items-center justify-center'>
-            <div className='w-1/2 bg-slate-700 p-4 rounded-2xl'>
+            <div className='w-1/2 glass-card p-4 rounded-2xl'>
                 <div className='my-4'>
                     <input
                         type='text'
@@ -117,7 +117,7 @@ export default function ModifyProblem() {
                             localStorage.setItem('heading', e.target.value);
                         }}
                         placeholder='Heading'
-                        className='bg-slate-500 text-white placeholder-gray-300 rounded-xl w-full p-2'
+                        className='glass-card text-white placeholder-gray-300 rounded-xl w-full p-2'
                     />
                 </div>
                 <div className='my-4'>
@@ -128,7 +128,7 @@ export default function ModifyProblem() {
                             localStorage.setItem('description', e.target.value);
                         }}
                         placeholder='Description'
-                        className='bg-slate-500 text-white placeholder-gray-300 rounded-xl w-full p-2 min-h-96'
+                        className='glass-card text-white placeholder-gray-300 rounded-xl w-full p-2 min-h-96'
                     />
                 </div>
                 <div className='my-4'>
@@ -149,13 +149,13 @@ export default function ModifyProblem() {
                                 value={testcase.input}
                                 onChange={(e) => handleTestcaseChange(index, 'input', e.target.value)}
                                 placeholder={`Testcase ${index + 1} input`}
-                                className='bg-slate-500 text-white placeholder-gray-300 rounded-xl w-full p-2 mb-2 min-h-32'
+                                className='glass-card text-white placeholder-gray-300 rounded-xl w-full p-2 mb-2 min-h-32'
                             />
                             <textarea
                                 value={testcase.expectedOutput}
                                 onChange={(e) => handleTestcaseChange(index, 'expectedOutput', e.target.value)}
                                 placeholder={`Testcase ${index + 1} expected output`}
-                                className='bg-slate-500 text-white placeholder-gray-300 rounded-xl w-full p-2'
+                                className='glass-card text-white placeholder-gray-300 rounded-xl w-full p-2'
                             />
                             <div className='text-right'>
                                 <button

@@ -1,24 +1,32 @@
 version: '3.8'
+
 services:
   frontend:
-    build: ./frontend
+    image: 074004850075.dkr.ecr.us-east-1.amazonaws.com/codecase:frontend
+    container_name: frontend
     ports:
-      - "5170:80"
-    depends_on:
-      - backend
-      - compiler
-    restart: unless-stopped
+      - "5173:80"  # Expose only for internal test (Nginx will proxy later)
+
   backend:
-    build: ./backend
+    image: 074004850075.dkr.ecr.us-east-1.amazonaws.com/codecase:backend
+    container_name: backend
     ports:
       - "5000:5000"
-    environment:
-      - .env
-    restart: unless-stopped
+
   compiler:
-    build: ./compilerNode
+    image: 074004850075.dkr.ecr.us-east-1.amazonaws.com/codecase:compiler
+    container_name: compiler
     ports:
       - "7000:7000"
-    environment:
-      - .env
-    restart: unless-stopped
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+      - compiler
