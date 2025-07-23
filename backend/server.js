@@ -79,7 +79,17 @@ app.post('/signup', async (req, res) => {
       password: hashedPassword
     });
     await NewUser.save();
-    res.send("Signup successful ✅");
+    const token = jwt.sign(
+      { username: NewUser.username, role:"user"  },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: '30d' }
+    );
+
+    res.status(200).json({
+      message: "Welcome to CodeShrine⛩️",
+      token: token
+    });
+
   }
 });
 

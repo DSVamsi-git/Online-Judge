@@ -21,7 +21,7 @@ export default function Home() {
         </nav>
       </div>
       <div className='h-64 w-full mx-2 bg-center'>
-        <h1 class="gradient-text">CodeShrine</h1>
+        <h1 className="gradient-text">CodeShrine</h1>
         Worried about your interviews? No more. CodeShrine your one stop solution for all your coding interviews.
       </div>
       <div className='flex justify-between items-center'>

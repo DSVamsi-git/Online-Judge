@@ -1,7 +1,7 @@
 import './App.css';
 import { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const server_URI = import.meta.env.VITE_SERVER_URI;
 
@@ -9,13 +9,14 @@ export default function Signup() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [signupButtonText, setSignupButtonText] = useState("sign up");
+  const navigate = useNavigate();
   const handleClick = async ()=> {
     setSignupButtonText("signing up..")
     axios.post(server_URI + "/signup", {
       'username': username,
       'password': password
     })
-    .then(res => {alert(res.data.message || "Signup successful");    setSignupButtonText("sign up");})
+    .then(res => {alert(res.data.message || "Signup successful"); localStorage.setItem("token", res.data.token);   navigate('/profile')})
     .catch(err =>{alert(err.response?.data?.message || "Signup failed");setSignupButtonText("sign up");});
   }
 

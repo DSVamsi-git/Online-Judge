@@ -10,20 +10,21 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [loginButtonText, setLoginButtonText] = useState("login");
     const navigate = useNavigate();
-    const handleLogin = () => {
+    const handleLogin = () => {                                     console.log("✅ server_URI is........",server_URI);                                
     setLoginButtonText("logging in..")
-    axios.post(server_URI + "/login", {
+    axios.post(server_URI + "/login", {                            
         'username': username,
         'password': password
     })
     .then(function (response) {
         // Save token to localStorage
+                                                                     console.log("✅ server_URI is:", server_URI);
         localStorage.setItem("token", response.data.token);
         alert(response.data.message);
         navigate('/profile');
         setLoginButtonText("log in");
     })
-    .catch(function (error) {
+    .catch(function (error) {                                          
         setLoginButtonText("log in");
         alert(error.response?.data?.message || "Login failed");
     });

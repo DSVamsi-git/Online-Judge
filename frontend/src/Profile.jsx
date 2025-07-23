@@ -1,4 +1,4 @@
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -88,7 +88,7 @@ export default function Profile() {
   }, [navigate]);
 
 
-  if (loading) return <div><hi>Loading...</hi></div>;
+  if (loading) return <div><h1>Loading...</h1></div>;
   return (
     <>
       <div className="p-4">

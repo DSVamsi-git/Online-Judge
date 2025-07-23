@@ -13,7 +13,9 @@ export default function ProblemPage() {
     const [problem, setProblem] = useState(null);
     const [errorMessage, setErrorMessage] = useState("");
     const { id } = useParams();
-    const [code, setCode] = useState(localStorage.getItem(`${id}:code`) || '');
+    const boilerPlateCode = "#include<iostream>\n\nint main(){\n\n  return 0;\n}"
+    const [code, setCode] = useState(localStorage.getItem(`${id}:code`) || boilerPlateCode);
+    const [editorType, setEditorType] = useState("codeEditor");
     const [testcase, setTestcase] = useState(localStorage.getItem(`${id}:testcase`) || '');
     const [runMessage, setRunMessage] = useState(() => {
         const saved = localStorage.getItem(`${id}:runMessage`);
@@ -22,6 +24,7 @@ export default function ProblemPage() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [runButtonText, setRunButtonText] = useState("run");
     const [submitButtonText, setSubmitButtonText] = useState("submit");
+    const [language, setLanguage] = useState("C++")
     const navigate = useNavigate();
     function handleRun() {
         setRunButtonText("running...");
@@ -120,9 +123,36 @@ export default function ProblemPage() {
                     </div>
                     <div className="w-full">
                         <div className="h-128 rounded-2xl overflow-hidden shadow-lg relative pt-8 bg-slate-800">
-                            <div className="white absolute right-1 top-1 px-2 py-1 rounded text-white shadow-md">
+                            <div className="absolute flex justify-between items-center w-full top-1 px-2">
+                                {/* Left Buttons */}
+                                <div>
+                                    <button
+                                        onClick={() => setEditorType("codeEditor")}
+                                        className={`hover:text-blue-500 mr-2 ${editorType === "codeEditor" ? "text-violet-500 underline" : "text-violet-300"}`}
+                                    >
+                                        code-editor
+                                    </button>
+                                    <button
+                                        onClick={() => setEditorType("textEditor")}
+                                        className={`hover:text-blue-500 ${editorType === "textEditor" ? "text-violet-500 underline" : "text-violet-300"}`}
+                                    >
+                                        text-editor
+                                    </button>
+                                </div>
+
+                                {/* Right Dropdown */}
+                                <div>
+                                    <select
+                                        value={language}
+                                        onChange={(e) => setLanguage(e.target.value)}
+                                        className="bg-slate-800 text-white"
+                                    >
+                                        <option value="C++">C++</option>
+                                    </select>
+                                </div>
                             </div>
-                            <Editor
+
+                            {editorType==="codeEditor"&&<Editor
                                 language="cpp"
                                 value={code}
                                 onChange={(value) => {
@@ -156,7 +186,17 @@ export default function ProblemPage() {
 
                                 theme="slate-dark"
                                 height="500px"
+                            />}
+                            {editorType==="textEditor"&& <textarea
+                                value={code}
+                                onChange={(event) => {
+                                    setCode(event.target.value);
+                                    localStorage.setItem(`${id}:code`, value);
+                                }}
+                                placeholder="code"
+                                className="w-full h-125 p-2 text-md bg-slate-800 text-white  rounded-b-2xl"
                             />
+                            }
                         </div>
                     </div>
                 </div>
