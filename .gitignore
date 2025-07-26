@@ -8,12 +8,16 @@ frontend/node_modules/
 .env
 compilerNode/.env
 backend/.env
+aws-env/
 
 # Build output (example paths)
 frontend/vite-project/bin/
 codes/
 userInputs/
 executables/
+
+#keys
+keys/
 
 # Logs
 *.log

@@ -44,29 +44,10 @@ export default function Submissions() {
 
   return (
     <>
-      <div className="p-4">
-                    <nav className="flex justify-between items-center  text-white  py-4 rounded-2xl">
-            {/* Left side: Brand */}
-            <div className="flex items-center gap-2 text-2xl font-bold text-blue-400">
-                <span className="text-blue-400">
-                Code<span className="text-violet-600">Shrine</span>⛩️
-                </span>
-            </div>
-
-            {/* Right side: Nav links */}
-            <div className="flex gap-6 text-lg">
-                <Link to={`/problems/${id}`} className="hover:text-blue-400 transition">Problem</Link>
-                <Link to="/problems" className="hover:text-blue-400 transition">Problems</Link>
-                <Link to="/profile" className="hover:text-blue-400 transition">Profile</Link>
-                <button className="py-1 px-2 bg-amber-400 rounded-lg text-white text-lg hover:text-blue-400 transition" onClick={()=>{localStorage.removeItem("token");navigate('/home')}}>logout</button>
-            </div>
-            </nav>
-      </div>
-
       <div className="px-6 py-3">
         <h2 className="text-2xl font-bold mb-4">Submissions</h2>
         <div className="glass-card rounded-2xl">
-          <table className="table-auto w-full border border-gray-300 overflow-hidden rounded-2xl">
+          <table className="table-auto w-full overflow-hidden rounded-2xl">
             <thead>
               <tr className="bg-gray-500">
                 <th className="border px-4 py-2">Status</th>
@@ -83,7 +64,7 @@ export default function Submissions() {
                   <td className="border border-white px-4 py-2 text-amber-500">
                     {new Date(submission.createdAt).toLocaleString()}
                   </td>
-                  <td className="border border-white px-4 py-2"><button onClick={()=>{localStorage.setItem(`${id}:code`,submission.code);navigate(`/problems/${id}`);}} className="rounded-lg bg-black text-amber-500 hover:text-blue-600">{`</>`}</button></td>
+                  <td className="border border-white px-4 py-2"><button onClick={()=>{localStorage.setItem(`${id}:code`,submission.code); localStorage.setItem(`${submission.problem}:runMessage`,JSON.stringify({status:submission.status, message:{score:submission.score, feedback: submission.feedback}}));navigate(`/problems/${id}`);}} className="rounded-lg bg-black text-amber-500 hover:text-blue-600">{`</>`}</button></td>
                 </tr>
               ))}
             </tbody>

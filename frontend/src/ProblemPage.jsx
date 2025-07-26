@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from "axios";
 import Editor from "@monaco-editor/react";
 import ReactMarkdown from 'react-markdown';
+import Submissions from "./Submissions";
 
 const SERVER_URI = import.meta.env.VITE_SERVER_URI;
 const COMPILER_URI = import.meta.env.VITE_COMPILER_URI;
@@ -24,7 +25,8 @@ export default function ProblemPage() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [runButtonText, setRunButtonText] = useState("run");
     const [submitButtonText, setSubmitButtonText] = useState("submit");
-    const [language, setLanguage] = useState("C++")
+    const [language, setLanguage] = useState("C++");
+    const [toDisplay, setToDisplay] = useState("Description");
     const navigate = useNavigate();
     function handleRun() {
         setRunButtonText("running...");
@@ -106,20 +108,33 @@ export default function ProblemPage() {
                     </div>
                 </nav>
                 <div className="flex justify-between items-start gap-4 w-full  px-4">
-                    <div className=" w-full lg:w-1/2 glass-card p-4 rounded-2xl h-128 text-white">
-                        <div className=" max-w-7xl  mx-auto rounded-t-2xl p-2">
-                            <div className="flex justify-between items-center">
-                                <h1 className=" px-2 text-3xl font-bold text-white">{problem.ProblemHeading}</h1>
-                                <span className={`px-2 py-2 rounded-xl text-xl text-white ${problem.Difficulty === "Easy" ? "bg-green-600" : problem.Difficulty === "Medium" ? "bg-yellow-400" : "bg-red-600"} `}>
-                                    {problem.Difficulty}
-                                </span>
+                    <div className=" w-full lg:w-1/2 glass-card p-4 rounded-2xl h-128 text-white overflow-y-auto">
+                        {/* ✅ Problem Description */}
+                        
+                            <div>
+                                <div className="max-w-7xl mx-auto rounded-t-2xl p-2">
+                                    <div className="flex justify-between items-center">
+                                        <h1 className="px-2 text-3xl font-bold text-white">
+                                            {problem.ProblemHeading}
+                                        </h1>
+                                        <span
+                                            className={`px-2 py-2 rounded-xl text-xl text-white ${problem.Difficulty === "Easy"
+                                                    ? "bg-green-600"
+                                                    : problem.Difficulty === "Medium"
+                                                        ? "bg-yellow-400"
+                                                        : "bg-red-600"
+                                                }`}
+                                        >
+                                            {problem.Difficulty}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="max-w-7xl max-h-105 mx-auto rounded-b-2xl">
+                                    <div className="text-lg max-h-96 overflow-y-auto whitespace-pre-wrap text-white px-2 py-2 text-left">
+                                        {problem.Description}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div className="max-w-7xl max-h-105 mx-auto rounded-b-2xl ">
-                            <div className="text-lg max-h-96 overflow-y-auto whitespace-pre-wrap text-white px-2 py-2 text-left">
-                                {problem.Description}
-                            </div>
-                        </div>
                     </div>
                     <div className="w-full">
                         <div className="h-128 rounded-2xl overflow-hidden shadow-lg relative pt-8 bg-slate-800">
@@ -152,7 +167,7 @@ export default function ProblemPage() {
                                 </div>
                             </div>
 
-                            {editorType==="codeEditor"&&<Editor
+                            {editorType === "codeEditor" && <Editor
                                 language="cpp"
                                 value={code}
                                 onChange={(value) => {
@@ -187,7 +202,7 @@ export default function ProblemPage() {
                                 theme="slate-dark"
                                 height="500px"
                             />}
-                            {editorType==="textEditor"&& <textarea
+                            {editorType === "textEditor" && <textarea
                                 value={code}
                                 onChange={(event) => {
                                     setCode(event.target.value);
